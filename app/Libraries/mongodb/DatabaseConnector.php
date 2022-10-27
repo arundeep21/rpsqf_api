@@ -10,8 +10,8 @@ class DatabaseConnector {
         //$uri = getenv('ATLAS_URI');
        // $database = getenv('DATABASE');
 
-        $uri = "mongodb+srv://rpsqf_mng:3NU2PrlkOR3ykrvy@mong-rpsqf.3cstffh.mongodb.net/test";
-        $database = "rps-prop";
+        $uri = "";
+        $database = "";
       
 
 
