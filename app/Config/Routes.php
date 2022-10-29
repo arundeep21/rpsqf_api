@@ -38,6 +38,7 @@ $routes->setAutoRoute(true);
 // route since we don't have to scan directories.
 $routes->get('/', 'Home::index');
 
+
 //$routes->get("get-property/(:num)", "Property::show/$1");
  
 $routes->group("property", ["filter" => "basicauthFilter"] , function($routes){
@@ -48,6 +49,7 @@ $routes->group("property", ["filter" => "basicauthFilter"] , function($routes){
    $routes->get("prop", "Property::index");
    $routes->get("home_prop", "Property::get_home_page_prop");
    $routes->get("prop_category/(:any)", "Property::property_by_category/$1");
+      
    
      
     // $routes->get("prop", "Home::index");     
@@ -57,6 +59,20 @@ $routes->group("property", ["filter" => "basicauthFilter"] , function($routes){
 $routes->group("login", ["filter" => "basicauthFilter"] , function($routes){
    $routes->post("user", "Login::index");
    $routes->get("user", "Login::index"); 
+ });
+
+
+$routes->group("otp", ["filter" => "basicauthFilter"] , function($routes){
+      $routes->get('otp/(:num)', 'Otp::generate_otp/$1');
+      $routes->post('otp/(:num)', 'Otp::generate_otp/$1');
+ });
+$routes->group("otp_auth", ["filter" => "basicauthFilter"] , function($routes){
+      $routes->get('auth/(:num)', 'Otp_auth::auth/$1');
+      $routes->post('auth/(:num)', 'Otp_auth::auth/$1');
+ });
+$routes->group("new_contact_us", ["filter" => "basicauthFilter"] , function($routes){
+      $routes->get('data_insert/(:num)', 'Contact_us::insert_data/$1');
+      $routes->post('data_insert/(:num)', 'Contact_us::insert_data/$1');
  });
 
 /*

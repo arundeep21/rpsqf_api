@@ -16,7 +16,7 @@ class Mongo extends BaseController
     public function index()
     {       
         $mongo=new DatabaseConnector();  
-        $db=$mongo->getDatabase();   
+        $db= $mongo->getDatabase();   
 
         $collection = $db->property;
         $cursor = $collection->find();

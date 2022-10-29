@@ -30,8 +30,8 @@ class BasicauthFilter implements FilterInterface
         //echo "filter";
        //print_r($request); exit();
        // print_r($_SERVER);
-
-
+        //header('Access-Control-Allow-Origin: *');
+        //header('Access-Control-Allow-Origin: *');
          //header("Content-Type:application/json");
        //$rawData=file_get_contents('php://input');
        // $data_json = json_decode(file_get_contents('php://input'), true);
@@ -61,9 +61,10 @@ class BasicauthFilter implements FilterInterface
         //$password = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : "";
 
 
-        if(count($key_found)==0){
+       if(count($key_found)==0){
           
             header("Content-type: application/json");
+            header('Access-Control-Allow-Origin: *');
           
             echo json_encode(array(
                 "status" => false,
