@@ -59,6 +59,11 @@ $routes->group("login", ["filter" => "basicauthFilter"] , function($routes){
    $routes->get("user", "Login::index"); 
  });
 
+ $routes->group("Search", ["filter" => "basicauthFilter"] , function($routes){
+    // $routes->post("user", "Login::index");
+    $routes->get("query", "Search::index"); 
+  });
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing
