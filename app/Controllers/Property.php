@@ -7,6 +7,8 @@ use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
 use App\Models\PropertyModel;
 use App\Libraries\mongodb\DatabaseConnector;
+
+
 class Property extends ResourceController
 {
 
@@ -168,4 +170,61 @@ class Property extends ResourceController
 
 
     }
+
+    public function  property_by_category1()
+    {
+        //echo "dsfsd";
+        $mongo=new DatabaseConnector();
+
+        $db=$mongo->getDatabase();
+
+        $collection=$db->users;
+       // $filter = array('category' => new \MongoDB\BSON\Regex($category));
+
+
+
+        $cursor = $collection->find();   
+        //print_r($cursor); exit();
+        $return=array();
+          foreach ($cursor as $document) {
+            $return[]=$document;
+         }
+
+         return $this->respond($return, 200);
+
+
+    }
+
+
+
+    public function our_brands()
+    {
+        
+        $mongo=new DatabaseConnector();
+
+        $db=$mongo->getDatabase();
+        // $builder = $db->our_brands;
+        // $builder->find();
+        // print_r($builder);
+        // exit(); 
+        $collection=$db->our_brands;
+        // $filter = array('id'=> '1' );
+
+        $filter = [];
+        // $query = new \MongoDB\Driver\Query($filter);
+
+        $cursor = $collection->find($filter);   
+
+        $return=array();
+          foreach ($cursor as $document) {
+            $return[]=$document;
+         }
+
+         return $this->respond($return, 200);
+        // print_r($cursor);
+        
+    }
+
+
+    
 }
