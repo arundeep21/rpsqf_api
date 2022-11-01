@@ -2,8 +2,16 @@
 
 namespace App\Controllers;
 
+
+use CodeIgniter\RESTful\ResourceController;
+use CodeIgniter\API\ResponseTrait;
+use App\Models\PropertyModel;
+use App\Libraries\mongodb\DatabaseConnector;
+
 class Home extends BaseController
 {
+
+     use ResponseTrait;
     public function index()
     {
 
@@ -14,4 +22,6 @@ class Home extends BaseController
     {
         return view('test');
     }
+
+   
 }
