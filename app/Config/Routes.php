@@ -71,9 +71,26 @@ $routes->group("otp_auth", ["filter" => "basicauthFilter"] , function($routes){
       $routes->post('auth/(:num)', 'Otp_auth::auth/$1');
  });
 $routes->group("new_contact_us", ["filter" => "basicauthFilter"] , function($routes){
-      $routes->get('data_insert/(:num)', 'Contact_us::insert_data/$1');
-      $routes->post('data_insert/(:num)', 'Contact_us::insert_data/$1');
+      $routes->get('data_insert', 'Contact_us::insert_data');
+      $routes->post('data_insert', 'Contact_us::insert_data');
  });
+
+$routes->group("profile_check", ["filter" => "basicauthFilter"] , function($routes){
+      $routes->get('fetch', 'User_profile_check::check');
+      $routes->post('fetch', 'User_profile_check::check');
+ });
+$routes->group("profile_set", ["filter" => "basicauthFilter"] , function($routes){
+      $routes->get('set', 'Profile_update::put');
+      $routes->post('set', 'Profile_update::put');
+       $routes->get('get', 'Profile_update::fetch');
+      $routes->post('get', 'Profile_update::fetch');
+ });
+
+$routes->group("social_profile_check", ["filter" => "basicauthFilter"] , function($routes){
+      $routes->get('check', 'User_profile_check::fetch');
+      $routes->post('check', 'User_profile_check::fetch');
+ });
+
 
 /*
  * --------------------------------------------------------------------
