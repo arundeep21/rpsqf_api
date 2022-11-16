@@ -13,12 +13,13 @@ $db = $mongo->getDatabase();
 $data = json_decode(file_get_contents('php://input'),true);
 // data - insert query
 $check_data = array('_id' => new \MongoDB\BSON\ObjectID($data['id']));
+
 $table = $db->mongo_user->findOne($check_data);
-if ($table->name != null) {
-echo json_encode(array("message"=>"fulfiled","status"=>true));
+if ($table->name == null) {
+echo json_encode(array("message"=>null,"status"=>true));
 }
 else{
-echo json_encode(array("message"=>"failed","status"=>false));
+echo json_encode(array("message"=>"done","status"=>false));
 }
 }
 
