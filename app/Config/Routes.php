@@ -49,12 +49,12 @@ $routes->group("property", ["filter" => "basicauthFilter"] , function($routes){
    $routes->get("prop", "Property::index");
    $routes->get("home_prop", "Property::get_home_page_prop");
    $routes->get("prop_category/(:any)", "Property::property_by_category/$1");
-      
-   
+ 
      
     // $routes->get("prop", "Home::index");     
      //$routes->post("add-employee", "ApiController::addEmployee");
 });
+
 
 $routes->group("login", ["filter" => "basicauthFilter"] , function($routes){
    $routes->post("user", "Login::index");
