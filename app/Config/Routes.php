@@ -61,7 +61,6 @@ $routes->group("login", ["filter" => "basicauthFilter"] , function($routes){
    $routes->get("user", "Login::index"); 
  });
 
-
 $routes->group("otp", ["filter" => "basicauthFilter"] , function($routes){
       $routes->get('otp/(:num)', 'Otp::generate_otp/$1');
       $routes->post('otp/(:num)', 'Otp::generate_otp/$1');
@@ -90,6 +89,12 @@ $routes->group("social_profile_check", ["filter" => "basicauthFilter"] , functio
       $routes->get('check', 'User_profile_check::fetch');
       $routes->post('check', 'User_profile_check::fetch');
  });
+
+
+ $routes->group("Search", ["filter" => "basicauthFilter"] , function($routes){
+    // $routes->post("user", "Login::index");
+    $routes->get("query", "Search::index"); 
+  });
 
 
 /*

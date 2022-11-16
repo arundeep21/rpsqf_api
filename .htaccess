@@ -1,0 +1,52 @@
+RewriteEngine On
+  RewriteBase /rpsqf_api/
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ index.php?/$1 [L]
+
+
+# Disable directory browsing
+# Options All -Indexes
+
+<Files .env>
+Order allow,deny
+Deny from all
+</Files>
+
+<Files spark>
+Order allow,deny
+Deny from all
+</Files>
+
+
+
+# DISABLE CACHING
+<IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+</IfModule>
+
+<FilesMatch "\.(css|flv|gif|htm|html|ico|jpe|jpeg|jpg|js|mp3|mp4|png|pdf|swf|txt|php)$">
+    <IfModule mod_expires.c>
+        ExpiresActive Off
+    </IfModule>
+    <IfModule mod_headers.c>
+        FileETag None
+        Header unset ETag
+        Header unset Pragma
+        Header unset Cache-Control
+        Header unset Last-Modified
+        Header set Pragma "no-cache"
+        
+        Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+        Header set Expires "Thu, 1 Jan 1970 00:00:00 GMT"
+    </IfModule>
+</FilesMatch>
+#Redirect for CORS Preflight request
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
+#Set headers to access CORS Requests / allowing localhost only
+Header always add Access-Control-Allow-Origin *
+Header always add Access-Control-Allow-Headers "origin, x-requested-with, content-type, x-api-key"
+Header always add Access-Control-Allow-Methods "PUT, GET, POST, DELETE, OPTIONS"

@@ -25,12 +25,14 @@ class Otp_auth extends ResourceController{
               'name'=> null,
               'phone' => $number,
               'tem_phone' => ['ph1'=> null,'ph2'=>null],
-              'social'=> null,
+
+              'social'=>['facebook'=>null,'google'=>null],
+
               'insert_date'=>$date
 
           ]);
-
          echo json_encode(array("status"=>"success","user_id"=> $new_data_insert->getInsertedId().'$oid'));
+
      
         }else{
           
