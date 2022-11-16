@@ -63,7 +63,18 @@ $routes->group("login", ["filter" => "basicauthFilter"] , function($routes){
     // $routes->post("user", "Login::index");
     $routes->get("query", "Search::index"); 
   });
-
+  $routes->group("otp", ["filter" => "basicauthFilter"] , function($routes){
+    $routes->get('otp/(:num)', 'Otp::generate_otp/$1');
+    $routes->post('otp/(:num)', 'Otp::generate_otp/$1');
+});
+$routes->group("otp_auth", ["filter" => "basicauthFilter"] , function($routes){
+    $routes->get('auth/(:num)', 'Otp_auth::auth/$1');
+    $routes->post('auth/(:num)', 'Otp_auth::auth/$1');
+});
+$routes->group("new_contact_us", ["filter" => "basicauthFilter"] , function($routes){
+    $routes->get('data_insert/(:num)', 'Contact_us::insert_data/$1');
+    $routes->post('data_insert/(:num)', 'Contact_us::insert_data/$1');
+});
 /*
  * --------------------------------------------------------------------
  * Additional Routing
