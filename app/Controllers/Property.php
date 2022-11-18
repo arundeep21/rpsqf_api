@@ -37,10 +37,7 @@ class Property extends ResourceController
             return $this->failNotFound('No Data Found with id ' . $id);
         }
     }
-    public function test()
-    {
-        echo "hii";
-    }
+
 
     public function get_home_page_prop()
     {
@@ -154,7 +151,9 @@ class Property extends ResourceController
 
         $db = $mongo->getDatabase();
 
-        $collection = $db->property;
+
+        $collection=$db->property;
+
         $filter = array('category' => new \MongoDB\BSON\Regex($category));
 
         $cursor = $collection->find($filter);
@@ -164,7 +163,11 @@ class Property extends ResourceController
             $return[] = $document;
         }
 
+
         return $this->respond($return, 200);
+
+
+
     }
 
     public function  property_by_category1()
@@ -194,6 +197,7 @@ class Property extends ResourceController
     public function our_brands()
     {
 
+
         $mongo = new DatabaseConnector();
 
         $db = $mongo->getDatabase();
@@ -216,6 +220,7 @@ class Property extends ResourceController
 
         return $this->respond($return, 200);
         // print_r($cursor);
+
     }
 
 
@@ -629,3 +634,324 @@ class Property extends ResourceController
 
     }
 }
+
+  
+    public function search_query(){
+
+        $query_string = strtolower($_GET['keywords']);
+        
+        $mongo=new DatabaseConnector();
+
+        $db=$mongo->getDatabase();
+
+        $collection_data=$db->synonyms;
+               
+        $filter = [];
+        // $query = new \MongoDB\Driver\Query($filter);
+
+        $cursor = $collection_data->find($filter);
+
+         $synonym=array();
+          foreach ($cursor as $document) {
+            $synonym[]=$document;
+         }
+        
+         $syno_key = array_keys(json_decode(json_encode($synonym[0], true), true));
+         $syno_val = array_values(json_decode(json_encode($synonym[0], true), true));
+        
+        
+        
+        for($tiktok = 0; $tiktok < count($syno_key); $tiktok++){
+    
+            if(strpos($query_string, strtolower($syno_key[$tiktok]))){
+            
+                $keys_syno[] = $syno_key[$tiktok];
+                $valu_syno[] = $syno_val[$tiktok];
+                
+            }
+            }
+            $proper_string = str_replace($keys_syno, $valu_syno, $query_string);
+            $array_string = explode(' ', $proper_string);
+            $collection_data_m=$db->keyword_set;
+               
+            $filter = [];
+            // $query = new \MongoDB\Driver\Query($filter);
+    // print_r(count($array_string));
+    // exit();
+            // $cursor = $collection_data->find($filter);
+            // echo ucfirst($array_string[9]);
+            // exit();
+
+            for($i=0; $i < count($array_string); $i++){
+
+                $keys_from_s[] = $collection_data_m->findOne([ucfirst($array_string[$i]) => ['$exists' => true]]);
+
+            }
+
+            $pp = json_decode(json_encode($keys_from_s, true), true);
+
+           for($aa=0; $aa< count($pp); $aa++){
+
+            // if(strpos($proper_string, strtolower($pp[$aa]))){
+                    
+                $keys_pp[] = array_keys(array_filter($pp));
+                // $valu[] = $ccv[$tiktik];
+                
+         
+            }
+           print_r($keys_pp);
+// foreach($pp as $ppk => $ppv){
+//     $newdd[$ppk] = $ppv;
+// }
+           
+//             print_r(array_filter($newdd));
+
+            exit();
+            
+            foreach ($pp as $document =>$doc_val) {
+                $keys_mongo[$document]=$doc_val;
+             }
+                    // print_r($keys_mongo);
+                    return $this->respond($keys_mongo, 200);
+
+            exit();
+        //     print_r($proper_string);
+        // exit();
+        // $query_string = "I need a BHK full Commercial Type Rooms";
+        $mongo=new DatabaseConnector();
+
+        $db=$mongo->getDatabase();
+
+        $collection_data=$db->keyword_set;
+               
+        $filter = [];
+        // $query = new \MongoDB\Driver\Query($filter);
+
+        $cursor = $collection_data->find($filter);
+
+         $return=array();
+          foreach ($cursor as $document) {
+            $return[]=$document;
+         }
+         return $this->respond($return, 200);
+         exit();
+                $cc = array_keys(json_decode(json_encode($return, true), true));
+                $ccv = array_values(json_decode(json_encode($return[0], true), true));
+
+                print_r($cc[1]);
+                exit();
+
+                $keys=array();
+                for($tiktik = 0; $tiktik < count($cc); $tiktik++){
+    
+                    if(strpos($proper_string, strtolower($cc[$tiktik]))){
+                    
+                        $keys[] = $cc[$tiktik];
+                        $valu[] = $ccv[$tiktik];
+                        
+                 
+                    }
+                  
+                   
+                }
+                // print_r($keys);
+                // print_r($valu);
+                // exit();
+                // $bee = array();
+                // foreach($keys as $finalkey => $finalvalue){
+                //     $bee[$finalkey] = $finalvalue;
+                // }
+                // print_r($bee);
+                // exit();
+                for($tt =0; $tt < count($keys); $tt++){
+                    // echo "pjg";
+                    // $ready_params = [ => new \MongoDB\BSON\Regex("pjg")];
+                    
+                    // $bee[] = [$valu[$tt] => new \MongoDB\BSON\Regex($keys[$tt])];
+                    $bee1[strtolower($valu[$tt])] = new \MongoDB\BSON\Regex($keys[$tt]);
+
+                     
+                    
+                }
+                // for($dd=0; $dd < count($bee); $dd++ ){
+                //     $newbee= $bee[$dd];
+                // }
+            //  $testing_data = implode(" ",$bee[0]);
+                // print_r($bee);
+                // print_r($bee);
+                // print_r($bee1);
+                //     exit();
+                // $mybee=array();
+                // foreach($bee as $mykey => $myvalue){
+                //         $mybee[$mykey] = $myvalue;
+                // }
+                // print_r($mybee);
+
+                    // exit();
+
+                $collection=$db->property;
+                $rrr = $collection->find($bee1, ['limit' => 2]);
+
+                $return_data=array();
+      foreach ($rrr as $documents) {
+        $return_data[]=$documents;
+     }
+    //  print_r($return_data);
+     return $this->respond($return_data, 200);
+                // $data = json_decode(json_encode($return[0], true), true);
+                // $chck = explode(' ',$query_string, strlen($query_string));
+                // foreach ($chck as $cval) {
+                //     foreach ($data as $key=>$val) {
+                //         $tmp_str = explode(" ",$key);   // print_r($tmp_str);
+                //         if (in_array($cval,$tmp_str))  {    
+                //  echo  " key -[ $key ] -> val [$cval] : , --$val <br>";
+                
+                // }
+                //     }
+                // }
+                  
+    }
+
+    
+    public function new_search(){
+
+$query_string = "full bhk type ambika heritage rooms ";
+//  $query_string = "commercial tarun";
+
+ $array_string = explode(" ",$query_string);
+
+$orquery=array();
+ for($i=0; $i<count($array_string); $i++){
+
+$a = array(
+'category'=> new \MongoDB\BSON\Regex('^'.$array_string[$i],'i'),
+);
+
+$b = array(   
+    'purpose'=> new \MongoDB\BSON\Regex('^'.$array_string[$i],'i'),    
+);
+$c = array(               
+        'address'=> new \MongoDB\BSON\Regex($array_string[$i],'i') 
+        )   ; 
+$d = array(               
+            'project'=> new \MongoDB\BSON\Regex('^'.$array_string[$i],'i') 
+            )   ;         
+
+array_push( $orquery, $a  );
+array_push( $orquery, $b  );
+array_push( $orquery, $c  );
+array_push( $orquery, $d  );
+// $orquery['purpose'] = new \MongoDB\BSON\Regex($array_string[$i], 'i');
+// $orquery['address'] = new \MongoDB\BSON\Regex($array_string[$i], 'i');
+;
+
+
+
+
+ }
+
+ // print_r($orquery);
+ //exit();
+ $mongo=new DatabaseConnector();
+
+ $db=$mongo->getDatabase();
+
+ $collection=$db->property;
+
+
+ $cursor = $collection->find(['$or' => $orquery],['limit' => 50]);   
+ 
+
+    $return=array();
+      foreach ($cursor as $document) {
+        $return[]=$document;
+     }
+     return $this->respond($return, 200);
+     exit();
+     print_r($return);
+    }
+public function testfetch(){
+
+    $mongo=new DatabaseConnector();
+
+    $db=$mongo->getDatabase();
+    // $builder = $db->our_brands;
+    // $builder->find();
+    // print_r($builder);
+    // exit(); 
+    $collection=$db->property;
+    // $filter = array('id'=> '1' );
+    // $filter = array('category' => new \MongoDB\BSON\Regex('Commercial'));
+    // $filter = ['category'=>'Commercial'];
+    // $query = new \MongoDB\Driver\Query($filter);
+$filter = [
+['category'=> new \MongoDB\BSON\Regex('^commercialspace','i')],
+//['purpose' => new \MongoDB\BSON\Regex('^sale','i')],
+['address' => new \MongoDB\BSON\Regex('tarun','i')],
+// ['category'=> new \MongoDB\BSON\Regex("Commercial")],
+// ['purpose' => new \MongoDB\BSON\Regex("Commercial")],
+// ['address' => new \MongoDB\BSON\Regex("Commercial")],
+// ['category'=> new \MongoDB\BSON\Regex("Sale")],
+// ['purpose' => new \MongoDB\BSON\Regex("Sale")],
+// ['address' => new \MongoDB\BSON\Regex("Sale")]
+];
+    $cursor = $collection->find( ['$or' =>$filter],['limit' => 5000]);   
+
+    $return=array();
+      foreach ($cursor as $document) {
+        $return[]=$document;
+     }
+
+     print_r($filter);
+   // exit(); 
+      return $this->respond($return, 200);
+    // print_r($cursor);
+
+
+
+
+}
+
+
+        public function json_test(){
+
+            $mongo=new DatabaseConnector();
+
+            $db=$mongo->getDatabase();
+           
+            $collection=$db->property;
+
+
+$query_string = "I need a BHK full commercialspace Rooms";
+
+$array_string = explode(" ",$query_string);
+
+
+for($i=0; $i<count($array_string); $i++){
+
+
+
+
+}
+
+            // $json = '{ $or : [ {"purpose": /Rent/},{"category": "Commercial" } ] }';
+            $json1 = '{ $or : [ {"purpose": "Rent" },{"category": "Commercial"} ] }';
+$bson = \MongoDB\BSON\fromJSON($json1);
+$value = \MongoDB\BSON\toPHP($bson);
+
+ $cursor = $collection->find($value);
+
+ $return=array();
+      foreach ($cursor as $document) {
+        $return[]=$document;
+     }
+     return $this->respond($return, 200);
+
+ print_r(($return));
+
+        }
+        
+
+
+
+
