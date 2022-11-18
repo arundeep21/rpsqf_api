@@ -36,36 +36,26 @@ $table = $db->mongo_user->findOne($check_data);
 if ($table != null) {
 
 
-echo json_encode(array("status"=>"success","user_id" => $table->_id.$oid));
+echo json_encode(array("status"=>"success","user_id" => $table->_id));
 }
 else{
 
 $check_data = array('social' => [$data['provider'] => $data['email']]);
 $table = $db->social_contacts->findOne($check_data);
 if ($table != null) {
-// update count
 
-// if ($data['provider'] == 'facebook') {
-// 	$check_provider = 'google';
-// }else{
-// 	$check_provider = 'facebook';
-// }
-
-/*$db->social_contacts->updateOne(['social' => [$data['provider'] => $data['email']]],['$set' => ['count' => [$data['provider'] => $table->count[$data['provider']]+1],[$check_provider => $table->count[$check_provider]]]]);*/
-
-echo json_encode(array("status"=>"success","user_id" => $table->_id.$oid));
+echo json_encode(array("status"=>"success","user_id" => $table->_id));
 
 }else{
 
  $date = date("Y-m-d");
-          $new_data_insert = $db->social_contacts->insertOne([
-              'name'=> $data['name'],
-              'social'=> array($data['provider']=>$data['email']),
-              'count'=> array($data['provider'] => 1),
-              'insert_date'=>$date
-]);
+$new_data_insert = $db->social_contacts->insertOne([
+    'name'=> $data['name'],
+    'social'=> array($data['provider']=>$data['email']),
+    'count'=> array($data['provider'] => 1),
+    'insert_date'=>$date]);
 
-echo json_encode(array("status"=>"success","user_id"=> $new_data_insert->getInsertedId().'$oid'));
+echo json_encode(array("status"=>"success","user_id"=> $new_data_insert->getInsertedId()));
 }
 }
 }

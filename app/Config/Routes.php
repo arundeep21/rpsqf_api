@@ -96,6 +96,20 @@ $routes->group("social_profile_check", ["filter" => "basicauthFilter"] , functio
     $routes->get("query", "Search::index"); 
   });
 
+ $routes->group("dynamic_form", ["filter" => "basicauthFilter"] , function($routes){
+
+  $routes->post("form", "Dynamic_form::form");
+    $routes->get("form", "Dynamic_form::form"); 
+ 
+
+  $routes->post("option", "Dynamic_form::subOption");
+    $routes->get("option", "Dynamic_form::subOption"); 
+ });
+
+$routes->post("myCheck/option", "Dynamic_form::subOption");
+$routes->get("myCheck/option", "Dynamic_form::subOption");
+$routes->post("myCheck/form", "Dynamic_form::form");
+$routes->get("myCheck/form", "Dynamic_form::form");
 
 /*
  * --------------------------------------------------------------------

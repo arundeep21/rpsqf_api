@@ -31,12 +31,12 @@ class Otp_auth extends ResourceController{
               'insert_date'=>$date
 
           ]);
-         echo json_encode(array("status"=>"success","user_id"=> $new_data_insert->getInsertedId().'$oid'));
+         echo json_encode(array("status"=>"success","user_id"=> $new_data_insert->getInsertedId()));
 
      
         }else{
           
-        echo json_encode(array("status"=>"success","user_id"=> $test_table->_id.$oid));
+        echo json_encode(array("status"=>"success","user_id"=> $test_table->_id,"user_name"=>$test_table->name));
         }
 
 // end     
