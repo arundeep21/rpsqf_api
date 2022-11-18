@@ -34,10 +34,7 @@ class Property extends ResourceController
             return $this->failNotFound('No Data Found with id ' . $id);
         }
     }
-    public function test()
-    {
-        echo "hii";
-    }
+
 
     public function get_home_page_prop()
     {
@@ -149,9 +146,12 @@ class Property extends ResourceController
     {
         $mongo = new DatabaseConnector();
 
+
         $db = $mongo->getDatabase();
 
-        $collection = $db->property;
+
+        $collection=$db->property;
+
         $filter = array('category' => new \MongoDB\BSON\Regex($category));
 
         $cursor = $collection->find($filter);
@@ -161,7 +161,10 @@ class Property extends ResourceController
             $return[] = $document;
         }
 
+
         return $this->respond($return, 200);
+
+
     }
 
     public function  property_by_category1()
@@ -191,6 +194,9 @@ class Property extends ResourceController
     public function our_brands()
     {
 
+
+
+
         $mongo = new DatabaseConnector();
 
         $db = $mongo->getDatabase();
@@ -213,7 +219,10 @@ class Property extends ResourceController
 
         return $this->respond($return, 200);
         // print_r($cursor);
+
     }
+
+
 
 
     public function search_query()
@@ -594,6 +603,423 @@ class Property extends ResourceController
         }
         return $this->respond($return, 200);
     }
+
+
+
+
+    public function autosuggest()
+    {
+
+        $strings = $_GET['string'];
+
+ 
+        $mongo = new DatabaseConnector();
+
+        $db = $mongo->getDatabase();
+
+        $collection = $db->query_key_pair;
+
+        if($strings !== ''){
+
+        $cursor = $collection->find(['user_inputs' => new \MongoDB\BSON\Regex($strings, 'i')],['limit'=>5]);
+        // print_r($strings);
+        // exit();
+        $return = array();
+        foreach ($cursor as $document) {
+            $return[] = $document;
+
+        }
+    
+        return $this->respond($return, 200);
+    }
+
+    }
+}
+
+  
+
+
+
+    public function search_query()
+    {
+
+        $clean = explode(" ", "i need am looking for want to require in at a an");
+        $synonym = ["flat" => "apartment", "buy" => "sale","home"=>"house","purchase"=>"sale","sq ft"=>"sq.ft","sqft"=>"sq.ft"];
+      
+        $clean = array_values(array_filter($clean)); #in case there is duplicate
+
+        $query_string1 = strtolower($_GET['keywords']);
+        $skip = (int)$_GET['skip'];
+        // print_r($skip);
+        // exit();
+        $kk = array_keys($synonym);
+        $vv = array_values($synonym); 
+        $query_string = str_replace($kk,$vv,$query_string1);
+        // print_r($query_string);
+        // exit();
+        $city = $_GET['city_name'];
+        $filters = base64_decode($_GET['filters']);
+        $mongo = new DatabaseConnector();
+
+        $db = $mongo->getDatabase();
+        $collection_query = $db->query_key_pair;
+        $cursor = $collection_query->find(['user_inputs' => $query_string],['limit'=>1]);
+        $key_data = [];
+        foreach ($cursor as $document) {
+            $key_data[] = $document;
+        }
+        $pagination = $skip;
+
+
+        $options = ['sort' => ['property_id' => -1], 'skip' => $pagination, 'limit' => 3];
+
+       
+           
+        
+        if(count($key_data)>0 && $filters == ''){
+            $keypair = $key_data[0]->key_pair;
+            foreach($keypair as $key=>$val){
+                $data_from_query[$key] = $val;
+            }
+            // 
+            $collection = $db->property;
+
+            $cursor = $collection->find($data_from_query,$options);
+            $key_datas = [];
+            foreach ($cursor as $document) {
+                $key_datas[] = $document;
+                        }
+
+                        // print_r($data_from_query);
+                        // exit();
+            return $this->respond($key_datas, 200);
+        }
+
+        else{
+       
+
+
+ 
+        // $pagination = 0;
+
+        // $options = ['sort' => ['property_id' => -1], 'skip' => $pagination, 'limit' => 50];
+
+
+        $mongo = new DatabaseConnector();
+
+        $db = $mongo->getDatabase();
+        $collection_data_m = $db->keyword_set;
+        $array_string = array_values(array_filter(explode(' ', $query_string))); # remove space and reindexed
+
+        #----------- clean up ---------------
+        for ($n = 0; $n < count($array_string); $n++) {
+            if (array_search($array_string[$n], $clean) > -1) {
+                unset($array_string[$n]);
+            }
+        }
+        $array_string = array_values($array_string);
+        #----------- clean up ---------------
+
+        #------------- locality correction ----------- patter [tarun nagar]
+        for ($n = 0; $n < count($array_string); $n++) {
+            if ($array_string[$n] == 'nagar') {
+                $array_string[$n - 1] = ucfirst($array_string[$n - 1]) . " " . ucfirst($array_string[$n]);
+                unset($array_string[$n]);
+            }
+        }
+        $array_string = array_values($array_string);
+
+        #------------- locality correction -----------
+
+        for ($i = 0; $i < count($array_string); $i++) {
+            // $keys_from_s[] = $collection_data_m->findOne([ucfirst(strtolower($array_string[$i])) => ['$exists' => true]]);      
+            $keys_from_s[] = $collection_data_m->findOne([ucfirst($array_string[$i]) => ['$exists' => true]]);
+            // echo  ucfirst($array_string[$i])."</br>";
+        }
+
+
+
+        $pp = json_decode(json_encode($keys_from_s, true), true);
+
+
+        foreach ($pp as $k => $doc_val) {
+            $keys_mongo[$k] = $doc_val;
+        }
+        $exact_value = array_filter($keys_mongo);
+        $merge = array_merge(...$exact_value);
+        $result_keys = array_keys($merge);
+        $result_values = array_values($merge);
+
+
+        $kys = [];
+        foreach ($array_string as $v) {                 #user text
+            //  echo $v;          
+            foreach ($merge as $k => $m) {            #db keyset
+                if (strtolower($k) == strtolower($v)) {
+                    $kys[$m] = new \MongoDB\BSON\Regex('^' . ucfirst($v), 'i');
+                }
+            }
+        }
+        // print_r($result_keys);           
+
+
+        #------ temporary key name changing
+        foreach ($kys as $k => $v) {
+            if ($k == 'city') {
+                unset($kys['city']);
+                $kys['city_name'] = $v;
+            }
+        }
+        // $text = ['$text' => ['$search'=>$query_string]];
+
+        if ($filters == '') {
+            $filter_data = $kys;
+        } 
+        else {
+
+            parse_str($filters, $get_array);
+            $alldata = $get_array;
+
+            $filter_data = $alldata;
+        }
+
+        if (count($kys) > 0) {
+
+
+            $collection_data_key_pair = $db->query_key_pair;
+
+
+            $cursor = $collection_data_key_pair->findOneAndUpdate(
+                array("user_inputs" => $query_string1),
+                array('$set' => array('user_inputs' => $query_string1, 'key_pair' => $kys, "created_at" => date("Y/m/d"))),
+
+                array(
+                    "upsert" => true,
+                )
+            );
+
+
+            //    exit();
+
+            $collection_data_s = $db->property;
+            $cursor = $collection_data_s->find($filter_data, $options);
+
+            $return = array();
+            foreach ($cursor as $document) {
+                $return[] = $document;
+            }
+            return $this->respond($return, 200);
+            exit();
+        } else {
+
+            return $this->respond(['message' => 'Search not found but you can try below most searches', 'status' => 754], 200);
+        }
+    
+    }
+    exit();
+    }
+
+
+    public function new_search()
+    {
+
+        $query_string = $_GET['keywords'];
+        $city = $_GET['city_name'];
+    
+        $array_string = explode(" ", $query_string);
+
+        $orquery = array();
+        for ($i = 0; $i < count($array_string); $i++) {
+
+            $a = array(
+                'category_name' => new \MongoDB\BSON\Regex('^' . $array_string[$i], 'i'),
+            );
+
+            $b = array(
+                'type' => new \MongoDB\BSON\Regex('^' . $array_string[$i], 'i'),
+            );
+            $c = array(
+                'map_address' => new \MongoDB\BSON\Regex($array_string[$i], 'i')
+            );
+            $d = array(
+                'project_name' => new \MongoDB\BSON\Regex('^' . $array_string[$i], 'i')
+            );
+
+            array_push($orquery, $a);
+            array_push($orquery, $b);
+            array_push($orquery, $c);
+            array_push($orquery, $d);
+                // $orquery['purpose'] = new \MongoDB\BSON\Regex($array_string[$i], 'i');
+                // $orquery['address'] = new \MongoDB\BSON\Regex($array_string[$i], 'i');
+            ;
+        }
+
+        $mongo = new DatabaseConnector();
+
+        $db = $mongo->getDatabase();
+
+        $collection = $db->property;
+        $pagination = 0;
+
+
+        $alldata = $_SERVER['QUERY_STRING'];
+
+        parse_str($alldata, $get_array);
+        $alldata = $get_array;
+
+        unset($alldata['keywords']);
+        unset($alldata['key']);
+ 
+        $combine = array_merge($finor,  $alldata);
+
+
+        $options = ['sort' => ['property_id' => -1], 'skip' => $pagination, 'limit' => 5]; 
+        $cursor = $collection->find($combine, $options);
+        // $cursor = $collection->find();
+
+        //  print_r($cursor);
+        //  exit();
+        $return = array();
+        foreach ($cursor as $document) {
+            $return[] = $document;
+        }
+        return $this->respond($return, 200);
+
+    }
+
+
+
+
+
+    public function testfetch()
+    {
+
+        $mongo = new DatabaseConnector();
+
+        $db = $mongo->getDatabase();
+
+        $collection = $db->property;
+
+        $filter = [
+            ['category' => new \MongoDB\BSON\Regex('^commercialspace', 'i')],
+            //['purpose' => new \MongoDB\BSON\Regex('^sale','i')],
+            ['address' => new \MongoDB\BSON\Regex('tarun', 'i')],
+
+        ];
+        $cursor = $collection->find(['$or' => $filter], ['limit' => 5000]);
+
+        $return = array();
+        foreach ($cursor as $document) {
+            $return[] = $document;
+        }
+
+        print_r($filter);
+        // exit(); 
+        return $this->respond($return, 200);
+        // print_r($cursor);
+
+
+
+
+    }
+
+
+    public function json_test()
+    {
+
+
+
+
+        $mongo = new DatabaseConnector();
+
+        $db = $mongo->getDatabase();
+
+        $collection = $db->property;
+
+
+        $query_string = $_GET['keywords'];
+
+        $array_string = explode(" ", $query_string);
+
+
+        for ($i = 0; $i < count($array_string); $i++) {
+        }
+
+        $json1 = '{ $or : [ {"purpose": "Rent" },{"category": "Commercial"} ] }';
+        $bson = \MongoDB\BSON\fromJSON($json1);
+        $value = \MongoDB\BSON\toPHP($bson);
+
+        $cursor = $collection->find($value);
+
+        $return = array();
+        foreach ($cursor as $document) {
+            $return[] = $document;
+        }
+        return $this->respond($return, 200);
+
+        print_r(($return));
+    }
+
+
+
+    public function city()
+    {
+
+
+
+        $mongo = new DatabaseConnector();
+
+        $db = $mongo->getDatabase();
+
+        $collection = $db->search_cities;
+        $filter = [];
+        $cursor = $collection->find($filter);
+        $return = array();
+        foreach ($cursor as $document) {
+            $return[] = $document;
+        }
+        return $this->respond($return, 200);
+    }
+
+
+    public function indexing_search()
+    {
+
+
+        $query_string = $_GET['keywords'];
+        $city = $_GET['city_name'];
+        $filters = base64_decode($_GET['filters']);
+        $text = ['$text' => ['$search' => $query_string]];
+
+        if ($filters == '') {
+            $filter_data = $text;
+        } else {
+
+            parse_str($filters, $get_array);
+            $alldata = $get_array;
+
+            $filter_data = $alldata;
+
+        }
+
+    
+
+        $mongo = new DatabaseConnector();
+
+        $db = $mongo->getDatabase();
+
+        $collection = $db->test_property;
+        $pagination = 0;
+        $options = ['sort' => ['property_id' => -1], 'skip' => $pagination, 'limit' => 100];
+
+        $cursor = $collection->find($filter_data, $options);
+        $return = array();
+        foreach ($cursor as $document) {
+            $return[] = $document;
+        }
+        return $this->respond($return, 200);
+    }
+
 
 
 
