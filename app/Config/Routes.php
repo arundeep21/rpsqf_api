@@ -49,7 +49,8 @@ $routes->group("property", ["filter" => "basicauthFilter"] , function($routes){
    $routes->get("prop", "Property::index");
    $routes->get("home_prop", "Property::get_home_page_prop");
    $routes->get("prop_category/(:any)", "Property::property_by_category/$1");
- 
+  $routes->post("aboutus", "Property::aboutus"); 
+   $routes->get("aboutus", "Property::aboutus");
      
     // $routes->get("prop", "Home::index");     
      //$routes->post("add-employee", "ApiController::addEmployee");

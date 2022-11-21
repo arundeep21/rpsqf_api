@@ -174,7 +174,8 @@ class Website extends ResourceController
                 foreach ($cursor as $document) {
                   $return[]=$document;
                }
-               return $this->respond($return, 200);
+               $return_data = json_encode(array("message"=>$return,"status"=>200));
+               return $this->respond($return_data);
           }
 
 }
