@@ -264,6 +264,13 @@ class Property extends ResourceController
             $key_datas = [];
             foreach ($cursor as $document) {
                 $key_datas[] = $document;
+
+
+                unset($document->contact_phone);
+                unset($document->contact_name);
+                unset($document->map_url);
+                unset($document->map_latitude);
+                unset($document->map_longtitude);
                         }
 
                         // print_r($data_from_query);
@@ -357,7 +364,25 @@ class Property extends ResourceController
             $alldata = $get_array;
 
             $filter_data = $alldata;
+
+            parse_str($filters, $pjg);
+            // unset($pjg['category_name']);
+            // unset($pjg['type']);
+            // $kp=[];
+            foreach($pjg as $k => $c){
+               if( $k!='category_name' && $k!='type' ){
+                  $pjg['details.'.$k]=$c;             
+                  unset($pjg[$k]);             
+               }           
+    
+            }
+            $filter_data = $pjg;
         }
+   
+        // print_r($pjg);
+        // $accpt=['category_name','type'];
+       
+        // exit();
 
         if (count($kys) > 0) {
 
@@ -383,7 +408,16 @@ class Property extends ResourceController
             $return = array();
             foreach ($cursor as $document) {
                 $return[] = $document;
+                unset($document->contact_phone);
+                unset($document->contact_name);
+                unset($document->map_url);
+                unset($document->map_latitude);
+                unset($document->map_longtitude);
             }
+            // if (count($return)>0){
+            //     print_r($return[0]->contact_id);
+            // }
+            // exit();
             return $this->respond($return, 200);
             exit();
         } else {
@@ -477,19 +511,20 @@ class Property extends ResourceController
         $collection = $db->property;
 
         $filter = [
-            ['category' => new \MongoDB\BSON\Regex('^commercialspace', 'i')],
+            ['category' => new \MongoDB\BSON\Regex('Apartment', 'i')],
             //['purpose' => new \MongoDB\BSON\Regex('^sale','i')],
             ['address' => new \MongoDB\BSON\Regex('tarun', 'i')],
 
         ];
-        $cursor = $collection->find(['$or' => $filter], ['limit' => 5000]);
+        $cursor = $collection->find(['category_name'=>'Apartment','type'=>'Sale','details.total_unit'=>'36','details.gym'=>'Yes'], ['limit' => 10]);
 
         $return = array();
         foreach ($cursor as $document) {
             $return[] = $document;
+            unset($document->_id);
         }
 
-        print_r($filter);
+        // print_r($filter);
         // exit(); 
         return $this->respond($return, 200);
         // print_r($cursor);
@@ -625,4 +660,27 @@ class Property extends ResourceController
     }
 
     }
+
+    public function showProp($id = null)
+    {
+
+        $mongo = new DatabaseConnector();
+        $db = $mongo->getDatabase();
+        $collection=$db->property;
+        $filter = array('property_id' => $id);
+        $cursor = $collection->find($filter);
+        $return = array();
+        foreach ($cursor as $document) {
+            $return[] = $document;
+            unset($document->contact_phone);
+                unset($document->contact_name);
+                unset($document->map_url);
+                unset($document->map_latitude);
+                unset($document->map_longtitude);
+
+        }
+        return $this->respond($return, 200);
+    }
+
+
 }
