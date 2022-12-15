@@ -233,6 +233,15 @@ class Property extends ResourceController
         $query_string = str_replace($kk,$vv,$query_string1);
         // print_r($query_string);
         // exit();
+        $allform = base64_decode($_GET['allform']);
+        // print_r($allform); 
+        parse_str($allform, $allfdata);
+        $formdata = array_filter($allfdata);
+        // print_r(array_filter($allfdata));
+        $formready=[];
+        $formprice=[];
+        $formsize=[];
+        
         $city = $_GET['city_name'];
         $filters = base64_decode($_GET['filters']);
         $mongo = new DatabaseConnector();
@@ -258,6 +267,8 @@ class Property extends ResourceController
                 $data_from_query[$key] = $val;
             }
             // 
+            // print_r($data_from_query);
+            // exit();
             $collection = $db->property;
 
             $cursor = $collection->find($data_from_query,$options);
@@ -277,7 +288,64 @@ class Property extends ResourceController
                         // exit();
             return $this->respond($key_datas, 200);
         }
+        #--- from the front side form ---#
+        elseif ($query_string1 =='' && $filters == ''){
 
+            foreach ($formdata as $allform=>$allkey){
+        if($allform=='minprice'){
+            $formprice['$gte'] = (int)$allkey;     
+        }
+        else if ($allform =='maxprice'){
+            $formprice['$lte'] = (int)$allkey;
+        }
+        else if($allform == 'sizemin'){
+            $formsize['$gte'] = (int)$allkey;
+        }
+        else if($allform == 'sizemax'){
+            $formsize['$lte'] = (int)$allkey;
+        }
+        else{
+
+            $formready[$allform]=  $allkey;
+
+        }
+       
+        }
+             foreach($formprice as $key=>$val){
+            $formready['total_price'] = $formprice;
+        }
+        foreach($formsize as $key){
+            $formready['total_size'] = $formsize;
+        }
+        // $fullform = array_push($formprice,$formsize,$formready);
+    //  print_r($formready);
+    //  ($formready['total_price']=$formprice);
+
+        // exit();
+        $formquery=$formready;
+        // unset($formquery['total_price']);
+        // unset($formquery['total_size']);
+
+            // $test = ['unit_type'=>'sq.ft.','type'=>'Rent','total_price'=>  ['$gte'=>0,'$lte'=>0],'total_size'=>['$gte'=>0,'$lte'=>0]];
+            $collection_data_f = $db->property;
+            $cursor = $collection_data_f->find($formquery,$options);
+
+            $return = array();
+            // print_r($formquery);
+    
+            
+            // exit();
+            // print_r($test);
+            foreach ($cursor as $document) {
+                $return[] = $document;
+            }
+            return $this->respond($return, 200);
+
+        }
+
+        #-- ends here --#
+
+        #-- from keywords search --#
         else{
        
 
@@ -294,6 +362,8 @@ class Property extends ResourceController
         $collection_data_m = $db->keyword_set;
         $array_string = array_values(array_filter(explode(' ', $query_string))); # remove space and reindexed
 
+        // print_r($array_string);
+        // exit();
         #----------- clean up ---------------
         for ($n = 0; $n < count($array_string); $n++) {
             if (array_search($array_string[$n], $clean) > -1) {
@@ -304,13 +374,15 @@ class Property extends ResourceController
         #----------- clean up ---------------
 
         #------------- locality correction ----------- patter [tarun nagar]
-        for ($n = 0; $n < count($array_string); $n++) {
-            if ($array_string[$n] == 'nagar') {
-                $array_string[$n - 1] = ucfirst($array_string[$n - 1]) . " " . ucfirst($array_string[$n]);
-                unset($array_string[$n]);
-            }
+      if(count($array_string) >1){
+        for ($n = 0; $n < count($array_string)-1; $n++) {
+                $dummy[]=ucfirst($array_string[$n]).' '.ucfirst($array_string[$n+1]);
+                $dummy2[]=ucfirst($array_string[$n]).ucfirst($array_string[$n+1]);
+                $dummy3[]=ucfirst($array_string[$n]).$array_string[$n+1];                
         }
-        $array_string = array_values($array_string);
+        $array_string = array_merge($array_string,$dummy,$dummy2,$dummy3);
+    }
+        // $array_string = array_values($array_string);
 
         #------------- locality correction -----------
 
@@ -324,7 +396,7 @@ class Property extends ResourceController
 
         $pp = json_decode(json_encode($keys_from_s, true), true);
 
-
+   
         foreach ($pp as $k => $doc_val) {
             $keys_mongo[$k] = $doc_val;
         }
@@ -343,8 +415,8 @@ class Property extends ResourceController
                 }
             }
         }
-        // print_r($result_keys);           
-
+  
+       
 
         #------ temporary key name changing
         foreach ($kys as $k => $v) {
@@ -420,7 +492,10 @@ class Property extends ResourceController
             // exit();
             return $this->respond($return, 200);
             exit();
-        } else {
+        } 
+        
+        
+        else {
 
             return $this->respond(['message' => 'Search not found but you can try below most searches', 'status' => 754], 200);
         }
@@ -516,14 +591,18 @@ class Property extends ResourceController
             ['address' => new \MongoDB\BSON\Regex('tarun', 'i')],
 
         ];
-        $cursor = $collection->find(['category_name'=>'Apartment','type'=>'Sale','details.total_unit'=>'36','details.gym'=>'Yes'], ['limit' => 10]);
-
+        // $cursor = $collection->find(['category_name'=>'Apartment','type'=>'Sale','details.total_unit'=>'36','details.gym'=>'Yes'], ['limit' => 1]);
+        // $cursor = $collection->find(['category_name'=>'Commercial Space','type'=>'Rent','locality'=>'Fancy Bazar']);
+        $cursor = $collection->find(['type'=>'Rent','unit_type'=>'sq.ft.','total_price'=>  ['$lte'=>0,'$gte'=>0],'total_size'=>['$gte'=>0,'$lte'=>0]]);
+        // $cursor1 = $collection->count(['category_name'=>'Apartment','type'=>'Sale','details.total_unit'=>'36','details.gym'=>'Yes']);
+        // print_r($cursor1);
+        // exit();
         $return = array();
         foreach ($cursor as $document) {
             $return[] = $document;
             unset($document->_id);
         }
-
+// $return['count'] = $cursor1;
         // print_r($filter);
         // exit(); 
         return $this->respond($return, 200);
@@ -583,8 +662,8 @@ class Property extends ResourceController
         $db = $mongo->getDatabase();
 
         $collection = $db->search_cities;
-        $filter = [];
-        $cursor = $collection->find($filter);
+        $filter = ['search_bar'=>['$exists'=>true]];
+        $cursor = $collection->find($filter, ['sort'=> ['search_bar'=>1],'limit'=>5]);
         $return = array();
         foreach ($cursor as $document) {
             $return[] = $document;
@@ -592,6 +671,40 @@ class Property extends ResourceController
         return $this->respond($return, 200);
     }
 
+    public function locality(){
+
+        $loc = $_GET['loc'];
+        $state = $_GET['state'];
+        $district = $_GET['dis'];
+
+        // print_r($loc);
+        // print_r($city);
+        // exit();
+
+ 
+        $mongo = new DatabaseConnector();
+
+        $db = $mongo->getDatabase();
+
+        $collection = $db->locality_pin;
+
+    
+
+        $cursor = $collection->find(['locality' => new \MongoDB\BSON\Regex($loc, 'i'), 'district_name' => new \MongoDB\BSON\Regex($district, 'i'), 'state_name' => new \MongoDB\BSON\Regex($state, 'i')],['limit'=>3]);
+        // print_r($strings);
+        // exit();
+        $return = array();
+        foreach ($cursor as $document) {
+            $return[] = $document;
+            unset($document->_id);
+
+        }
+    
+        return $this->respond($return, 200);
+
+
+
+    }
 
     public function indexing_search()
     {
